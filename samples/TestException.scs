@@ -1,0 +1,9 @@
+using SharpScript;
+
+class Test
+{
+	public static void Main(string[] args)
+	{
+		throw new System.InvalidOperationException("Oops");
+	}
+}

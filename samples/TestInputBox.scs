@@ -1,0 +1,30 @@
+// #compiler Roslyn
+// #reference "System.Windows.Forms.dll"
+// #reference "Menees.Common.dll"
+// #reference "Menees.Windows.Forms.dll"
+using System;
+using System.Windows.Forms;
+using Menees;
+using Menees.Windows.Forms;
+using SharpScript;
+
+class Test
+{
+	[STAThread]
+	public static void Main(string[] args)
+	{
+		string selection = Script.InputBox("Enter something:", "InputBox Test", "Something");
+		if (!string.IsNullOrEmpty(selection))
+		{
+			// Script.MsgBox(selection, MessageBoxButtons.OK, "Output");
+			Script.Echo(selection);
+		}
+
+		// Make sure the Menees DLLs can load in the secondary AppDomain.
+		Script.Echo(
+			nameof(ApplicationInfo.IsUserRunningAsAdministrator),
+			ApplicationInfo.IsUserRunningAsAdministrator,
+			nameof(WindowsUtility.AreVisualStylesEnabled),
+			WindowsUtility.AreVisualStylesEnabled);
+	}
+}

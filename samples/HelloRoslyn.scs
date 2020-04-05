@@ -1,0 +1,23 @@
+// C# "Hello, World" sample.
+//
+// Other assemblies can be referenced by using SharpScript's "reference"
+// directive as shown below.  This example shows how to reference the
+// "System.Design.dll".  This script doesn't make use of anything in that
+// assembly, but it demonstrates how to refer to another assembly when
+// necessary.
+// #compiler Roslyn
+// #reference "System.Design.dll"
+using SharpScript;
+
+class Test
+{
+	public static void Main(string[] args)
+	{
+		Script.Echo("Hello, Roslyn, from C#.");
+
+		if (args.Length > 0 && int.TryParse("1", out int value))
+		{
+			Script.Echo(args);
+		}
+	}
+}

@@ -1,0 +1,21 @@
+'A VB.NET "Hello, World" sample using a VB Class.
+
+'Other assemblies can be referenced by using SharpScript's "reference"
+'directive as shown below.  This example shows how to reference the
+'"System.Design.dll".  This script doesn't make use of anything in that
+'assembly, but it demonstrates how to refer to another assembly when
+'necessary.
+'#reference "System.Design.dll"
+
+Class Test
+
+    Shared Sub Main(args() as String)
+        Script.Echo("Hello, World, from VB.NET.")
+
+        'Show any command-line arguments that were passed to this script.
+        if args.Length > 0 then
+            Script.Echo(args)
+        end if
+    End Sub
+
+End Class

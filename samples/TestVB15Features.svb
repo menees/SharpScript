@@ -1,0 +1,16 @@
+'#compiler Roslyn
+'#reference "System.Design.dll"
+
+Class Test
+
+	Shared Sub Main(args() As String)
+		Dim length As Integer? = args?.Length
+		Dim lang As (compiler As String, version As Integer) = GetLanguage()
+		Dim message As String = $"The length of {NameOf(args)} is {length}, and the compiler is {lang.compiler} v{lang.version}."
+		Script.Echo(message)
+	End Sub
+
+	Shared Function GetLanguage() As (Name As String, Value As Integer)
+		Return ("VB", 15)
+	End Function
+End Class

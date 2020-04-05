@@ -1,0 +1,42 @@
+// #debug 
+// #reference "System.Windows.Forms.dll"
+// #reference "System.IO.Compression.dll"
+// #reference "System.IO.Compression.FileSystem.dll"
+
+using System;
+using System.IO;
+using System.IO.Compression;
+using System.Text;
+using System.Windows.Forms;
+using SharpScript;
+
+class Test
+{
+	[STAThread]
+	public static void Main(string[] args)
+	{
+		var x = "This is a test.";
+		var y = 123;
+		x += Convert.ToString(y);
+		
+		using (OpenFileDialog open = new OpenFileDialog())
+		{
+			open.Title = "Select a Zip file";
+			open.Filter = "Zip Files (*.zip)|*.zip";
+			if (open.ShowDialog(null) == DialogResult.OK)
+			{
+				// The Zip types are only defined in .NET 4.5 or later.
+				using (ZipArchive zip = ZipFile.OpenRead(open.FileName))
+				{
+					StringBuilder sb = new StringBuilder();
+					foreach (ZipArchiveEntry entry in zip.Entries)
+					{
+						sb.AppendFormat("{0} -- {1} -- {2}{3}", entry.FullName, entry.LastWriteTime, entry.Length, Environment.NewLine);
+					}
+
+					Script.Echo(sb.ToString());
+				}
+			}
+		}
+	}
+}

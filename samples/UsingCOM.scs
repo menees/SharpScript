@@ -1,0 +1,24 @@
+// C# sample of using COM interop.
+//
+// COM type libraries can be referenced by using SharpScript's "com_reference"
+// directive as shown below.  This example shows how to reference "scrrun.dll",
+// which contains WScript's runtime components.  It sets the namespace for the
+// generated Interop assembly to "WScript".
+//
+// If the namespace isn't specified, then it will default to the type library
+// file name minus the extension.  For this example, if "WScript" wasn't
+// specified, then the namespace would be "scrrun".
+//
+//#com_reference "scrrun.dll, WScript"
+using SharpScript;
+using WScript;
+
+class COMSample
+{
+	public static void Main()
+	{
+		FileSystemObject fso = new FileSystemObject();
+
+		Script.Echo("Created an instance of WScript's FileSystemObject.");
+	}
+}

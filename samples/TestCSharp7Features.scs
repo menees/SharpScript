@@ -1,0 +1,30 @@
+// #compiler Roslyn
+// Single line comments are ok.  Directive scanning ignores them if they don't contain a directive.
+// #r "System.Configuration.dll"
+// #com "ScrRun.dll, WScript"
+// Directive scanning will stop when it gets to the next line.
+using System;
+using SharpScript;
+
+class Test
+{
+	public static void Main(string[] args)
+	{
+		int? length = args?.Length;
+		(string compiler, int version) = GetLanguage();
+
+		if (int.TryParse("1", out int number))
+		{
+			string message = $"The length of {nameof(args)} is {length}, and the compiler is {compiler} v{version}.";
+			Script.Echo(message, "TryParse returned " + number);
+		}
+
+		// number is still in scope here.
+		if (number != 1)
+		{
+			Script.Echo(number + " is still in scope after TryParse.");
+		}
+	}
+
+	private static (string Name, int Value) GetLanguage() => ("C#", 7);
+}

@@ -1,0 +1,468 @@
+// #reference "System.Windows.Forms.dll"
+// #reference "Menees.Common.dll"
+// #reference "Menees.Windows.Forms.dll"
+
+#region Using Directives
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using Menees;
+using Menees.Windows.Forms;
+using Microsoft.Win32;
+using SharpScript;
+
+#endregion
+
+static class ShellSetup
+{
+	#region Private Data Members
+
+	private const string UserSoftwareClassesRoot = @"Software\Classes";
+	private const string CSharpExtensionWithoutDot = "scs";
+	private const string CSharpExtensionWithDot = "." + CSharpExtensionWithoutDot;
+	private const string CSharpProgId = "SharpScript.CSharp";
+	private const string VbExtensionWithoutDot = "svb";
+	private const string VbExtensionWithDot = "." + VbExtensionWithoutDot;
+	private const string VbProgId = "SharpScript.VB";
+	private const decimal Vs2015InternalVersionNumber = 14m;
+
+	private static readonly VsVersion[] SupportedVsVersions = new[]
+		{
+			// These are listed in order of preference (i.e., newest to oldest).
+			new VsVersion("2015", "14.0"), // Supports .NET 4.6
+			new VsVersion("2013", "12.0"), // Supports .NET 4.5.1
+			new VsVersion("2012", "11.0"), // Supports .NET 4.5
+			new VsVersion("2010", "10.0"), // Supports .NET 4.0
+		};
+
+	#endregion
+
+	#region Public Methods
+
+	[STAThread]
+	public static void Main(string[] args)
+	{
+		// Note: This script only writes to HKEY_CURRENT_USER, so we don't need to check ApplicationInfo.IsUserRunningAsAdministrator.
+		if (ShouldRegister(args))
+		{
+			Register();
+		}
+		else
+		{
+			Unregister();
+		}
+	}
+
+	#endregion
+
+	#region Private Methods
+
+	private static bool ShouldRegister(string[] args)
+	{
+		bool? result = null;
+
+		if (args.Length > 0)
+		{
+			if (string.Equals(args[0], "/Register", StringComparison.OrdinalIgnoreCase))
+			{
+				result = true;
+			}
+			else if (string.Equals(args[0], "/Unregister", StringComparison.OrdinalIgnoreCase))
+			{
+				result = false;
+			}
+			else
+			{
+				throw new ArgumentException("Unsupported command-line argument(s): " + string.Join(", ", args));
+			}
+		}
+
+		// If the command line didn't tell us what to do, then try to infer the correct action
+		// based on whether any file extensions are already registered for us.
+		if (result == null)
+		{
+			// Look under HKEY_CLASSES_ROOT because it is a combined view of HKEY_LOCAL_MACHINE's and HKEY_CURRENT_USER's
+			// Software\Classes subkeys.  See http://msdn.microsoft.com/en-us/library/windows/desktop/ms724475.aspx,
+			// http://support.microsoft.com/kb/256986, and http://technet.microsoft.com/en-us/library/cc739822.aspx.
+			// When we add or delete the file extensions, we'll always use HKEY_CURRENT_USER.  But if either of the extensions are
+			// registered to something else via HKLM, then we don't want to ignore/mask them unless the user explicitly tells us to register.
+			string scsValue = GetSubKeyDefaultValue(Registry.ClassesRoot, ".scs");
+			string svbValue = GetSubKeyDefaultValue(Registry.ClassesRoot, ".svb");
+			result = string.IsNullOrEmpty(scsValue) || string.IsNullOrEmpty(svbValue);
+		}
+
+		return (bool)result;
+	}
+
+	private static void Register()
+	{
+		// Check if a supported version of Visual Studio is installed.
+		VsVersion installedVsVersion = SupportedVsVersions.FirstOrDefault(ver => ver.IsInstalled);
+
+		// Build the prompt, default value, and supported options based on whether VS is installed.
+		const string CsOption = "CS";
+		const string VbOption = "VB";
+		HashSet<string> supportedOptions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { CsOption, VbOption };
+		string prompt = "This script will register SharpScript's files in Windows Explorer.\r\n" +
+			"- Include CS to register shell support for " + CSharpExtensionWithDot + " files.\r\n" +
+			"- Include VB to register shell support for " + VbExtensionWithDot + " files.\r\n";
+		string defaultValue = CsOption + " " + VbOption;
+		const string VsOption = "VS";
+		if (installedVsVersion != null)
+		{
+			prompt += "- Include VS to register support for editing within Visual Studio " + installedVsVersion.DisplayVersion + ".";
+			defaultValue += " " + VsOption;
+			supportedOptions.Add(VsOption);
+		}
+
+		// Prompt the user and validate their input.
+		const string Caption = "Register SharpScript";
+		HashSet<string> selectedOptions = null;
+		string inputBoxResult = WindowsUtility.ShowInputBox(null, prompt, Caption, defaultValue, null,
+			input =>
+			{
+				selectedOptions = new HashSet<string>(input.Split(new[] { ' ', ',', ';' }, StringSplitOptions.RemoveEmptyEntries), supportedOptions.Comparer);
+				var unsupportedOptions = selectedOptions.Except(supportedOptions);
+				string errorMessage = null;
+				if (unsupportedOptions.Any())
+				{
+					errorMessage = "Unsupported option(s): " + string.Join(" ", unsupportedOptions);
+					selectedOptions = null;
+				}
+
+				return errorMessage;
+			});
+
+		// Perform the necessary registrations.
+		if (!string.IsNullOrEmpty(inputBoxResult) && selectedOptions != null)
+		{
+			bool registerCs = selectedOptions.Contains(CsOption);
+			bool registerVb = selectedOptions.Contains(VbOption);
+			bool registerVs = installedVsVersion != null && selectedOptions.Contains(VsOption);
+
+			Register(registerCs, registerVb, registerVs, installedVsVersion);
+
+			Script.MsgBox("Registered successfully.", MessageBoxButtons.OK, Caption);
+		}
+	}
+
+	private static void Register(bool registerCs, bool registerVb, bool registerVs, VsVersion installedVsVersion)
+	{
+		// Register the file extensions with the shell to have Run, Run Debug, and optionally Edit in VS 201x actions.
+		if (registerCs)
+		{
+			// This will use the same icon as SharpScript.exe.
+			RegisterShellFileExtension(CSharpExtensionWithDot, CSharpProgId, "C#", registerVs, installedVsVersion);
+		}
+
+		if (registerVb)
+		{
+			// Note: SharpScript.exe has embedded icons as .NET resources, but the shell's DefaultIcon handler
+			// can only access unmanaged resources.  So we'll look for a loose .ico file.
+			RegisterShellFileExtension(VbExtensionWithDot, VbProgId, "VB.NET", registerVs, installedVsVersion,
+				() =>
+					{
+						string result = Path.Combine(Script.SharpScriptDirectory, "SharpScriptVB.ico");
+						if (!File.Exists(result))
+						{
+							result = null;
+						}
+
+						return result;
+					});
+		}
+
+		// If we registered either file association with Windows, then send the shell a change notification.
+		if (registerCs || registerVb)
+		{
+			SendShellChangeNotification();
+		}
+
+		// Register the file extensions with Visual Studio to show the proper syntax highlighting.
+		if (registerVs && installedVsVersion != null)
+		{
+			// These magic GUIDs came from manually configuring the extensions in VS 2012 and then examining the registry.
+			if (registerCs)
+			{
+				// VS 2015 added a new C# language service with a new GUID.
+				string defaultId = installedVsVersion.InternalVersionNumber >= Vs2015InternalVersionNumber
+					? "{A6C744A8-0E4A-4FC6-886A-064283054674}"
+					: "{8B382828-6202-11D1-8870-0000F87579D2}";
+				RegisterVsFileExtensionMapping(CSharpExtensionWithoutDot, installedVsVersion,
+					defaultId, "{694DD9B6-B865-4C5B-AD85-86356E9C88DC}");
+			}
+
+			if (registerVb)
+			{
+				RegisterVsFileExtensionMapping(VbExtensionWithoutDot, installedVsVersion,
+					"{2C015C70-C72C-11D0-88C3-00A0C9110049}", "{E34ACDC0-BAAE-11D0-88BF-00A0C9110049}");
+			}
+		}
+	}
+
+	private static void Unregister()
+	{
+		const string Caption = "Unregister SharpScript";
+		if (Script.MsgBox(
+			"Are you sure you want to unregister SharpScript's files in Windows Explorer?",
+			MessageBoxButtons.YesNo,
+			Caption) == DialogResult.Yes)
+		{
+			UnregisterShellFileExtension(CSharpExtensionWithDot, CSharpProgId);
+			UnregisterShellFileExtension(VbExtensionWithDot, VbProgId);
+			SendShellChangeNotification();
+
+			foreach (VsVersion vsVersion in SupportedVsVersions.Where(ver => ver.IsInstalled))
+			{
+				UnregisterVsFileExtensionMapping(CSharpExtensionWithoutDot, vsVersion);
+				UnregisterVsFileExtensionMapping(VbExtensionWithoutDot, vsVersion);
+			}
+
+			Script.MsgBox("Unregistered successfully.", MessageBoxButtons.OK, Caption);
+		}
+	}
+
+	private static void RegisterShellFileExtension(
+		string extensionWithDot,
+		string progId,
+		string languageName,
+		bool registerVsEdit,
+		VsVersion installedVsVersion,
+		Func<string> getDefaultIcon = null)
+	{
+		using (RegistryKey rootKey = Registry.CurrentUser.CreateSubKey(UserSoftwareClassesRoot))
+		{
+			using (RegistryKey extensionKey = rootKey.CreateSubKey(extensionWithDot))
+			{
+				extensionKey.SetValue(null, progId);
+				extensionKey.SetValue("Content Type", "text/plain");
+				extensionKey.SetValue("PerceivedType", "text");
+			}
+
+			using (RegistryKey qualifiedKey = rootKey.CreateSubKey(progId))
+			{
+				qualifiedKey.SetValue(null, "SharpScript " + languageName);
+
+				// See if there's custom logic to determine the default icon.  If not, we'll default to SharpScript's icon.
+				string defaultIcon = null;
+				if (getDefaultIcon != null)
+				{
+					defaultIcon = getDefaultIcon();
+				}
+
+				string sharpScriptFullExeName = Path.Combine(Script.SharpScriptDirectory, "SharpScript.exe");
+				SetSubKeyDefaultValue(qualifiedKey, "DefaultIcon", defaultIcon ?? (sharpScriptFullExeName + ",0"));
+				SetSubKeyDefaultValue(qualifiedKey, "shell", "open,debug");
+
+				string quotedExeName = TextUtility.EnsureQuotes(sharpScriptFullExeName);
+				SetSubKeyDefaultValue(qualifiedKey, @"shell\open", "Run");
+				SetSubKeyDefaultValue(qualifiedKey, @"shell\open\command", quotedExeName + " \"%1\" %*");
+
+				SetSubKeyDefaultValue(qualifiedKey, @"shell\debug", "Run Debug");
+				SetSubKeyDefaultValue(qualifiedKey, @"shell\debug\command", quotedExeName + " \"%1\" //D %*");
+
+				if (registerVsEdit && installedVsVersion != null)
+				{
+					SetSubKeyDefaultValue(qualifiedKey, @"shell\EditVS", "Edit with VS " + installedVsVersion.DisplayVersion);
+					SetSubKeyDefaultValue(qualifiedKey, @"shell\EditVS\Command", TextUtility.EnsureQuotes(installedVsVersion.DevEnvExeFullName) + " /dde");
+					SetSubKeyDefaultValue(qualifiedKey, @"shell\EditVS\ddeexec", "Open(\"%1\")");
+					SetSubKeyDefaultValue(qualifiedKey, @"shell\EditVS\ddeexec\Application", "VisualStudio." + installedVsVersion.InternalVersion);
+					SetSubKeyDefaultValue(qualifiedKey, @"shell\EditVS\ddeexec\Topic", "system");
+				}
+			}
+		}
+	}
+
+	private static void UnregisterShellFileExtension(string extensionWithDot, string progId)
+	{
+		using (RegistryKey rootKey = Registry.CurrentUser.OpenSubKey(UserSoftwareClassesRoot, true))
+		{
+			if (rootKey != null)
+			{
+				rootKey.DeleteSubKeyTree(extensionWithDot, false);
+				rootKey.DeleteSubKeyTree(progId, false);
+			}
+		}
+	}
+
+	private static void RegisterVsFileExtensionMapping(string extensionWithoutDot, VsVersion installedVsVersion, string defaultId, string logViewId)
+	{
+		using (RegistryKey rootKey = Registry.CurrentUser.CreateSubKey(installedVsVersion.FileExtensionMappingRoot))
+		using (RegistryKey extensionKey = rootKey.CreateSubKey(extensionWithoutDot))
+		{
+			extensionKey.SetValue(null, defaultId);
+			extensionKey.SetValue("LogViewID", logViewId);
+		}
+
+		// VS 2015 also requires a Default Editors reference.
+		if (installedVsVersion.InternalVersionNumber >= Vs2015InternalVersionNumber)
+		{
+			using (RegistryKey rootKey = Registry.CurrentUser.CreateSubKey(installedVsVersion.DefaultEditorsRoot))
+			using (RegistryKey extensionKey = rootKey.CreateSubKey(extensionWithoutDot))
+			{
+				extensionKey.SetValue("Custom", defaultId);
+				extensionKey.SetValue("Type", 1);
+			}
+		}
+	}
+
+	private static void UnregisterVsFileExtensionMapping(string extensionWithoutDot, VsVersion installedVsVersion)
+	{
+		using (RegistryKey rootKey = Registry.CurrentUser.OpenSubKey(installedVsVersion.FileExtensionMappingRoot, true))
+		{
+			if (rootKey != null)
+			{
+				rootKey.DeleteSubKeyTree(extensionWithoutDot, false);
+			}
+		}
+
+		if (installedVsVersion.InternalVersionNumber >= Vs2015InternalVersionNumber)
+		{
+			using (RegistryKey rootKey = Registry.CurrentUser.OpenSubKey(installedVsVersion.DefaultEditorsRoot, true))
+			{
+				if (rootKey != null)
+				{
+					rootKey.DeleteSubKeyTree(extensionWithoutDot, false);
+				}
+			}
+		}
+	}
+
+	private static string GetSubKeyDefaultValue(RegistryKey key, string subKeyName)
+	{
+		string result = null;
+
+		using (RegistryKey subKey = key.OpenSubKey(subKeyName))
+		{
+			if (subKey != null)
+			{
+				result = Convert.ToString(subKey.GetValue(null));
+			}
+		}
+
+		return result;
+	}
+
+	private static void SetSubKeyDefaultValue(RegistryKey key, string subKeyName, string value)
+	{
+		using (RegistryKey subKey = key.CreateSubKey(subKeyName))
+		{
+			subKey.SetValue(null, value);
+		}
+	}
+
+	private static void SendShellChangeNotification()
+	{
+		// Tell the Windows shell that we changed one or more file associations.
+		// This allows it to refresh its icon cache and file type info.
+		// From C:\Program Files\Windows Kits\8.0\Include\um\ShlObj.h
+		const uint SHCNE_ASSOCCHANGED = 0x08000000;
+		const uint SHCNF_IDLIST = 0;
+		SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, IntPtr.Zero, IntPtr.Zero);
+	}
+
+	#endregion
+
+	#region Private Dll Imports
+
+	// From C:\Program Files\Windows Kits\8.0\Include\um\ShlObj.h
+	[DllImport("shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+	private static extern void SHChangeNotify(uint wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
+
+	#endregion
+
+	#region Private Types
+
+	private sealed class VsVersion
+	{
+		#region Constructors
+
+		public VsVersion(string displayVersion, string internalVersion)
+		{
+			this.DisplayVersion = displayVersion;
+			this.InternalVersion = internalVersion;
+		}
+
+		#endregion
+
+		#region Public Properties
+
+		public string DisplayVersion { get; private set; }
+
+		public string InternalVersion { get; private set; }
+
+		public decimal InternalVersionNumber
+		{
+			get
+			{
+				return decimal.Parse(this.InternalVersion);
+			}
+		}
+
+		public string FileExtensionMappingRoot
+		{
+			get
+			{
+				string result = @"Software\Microsoft\VisualStudio\" + this.InternalVersion + @"\FileExtensionMapping";
+				return result;
+			}
+		}
+
+		public string DefaultEditorsRoot
+		{
+			get
+			{
+				string result = @"Software\Microsoft\VisualStudio\" + this.InternalVersion + @"\Default Editors";
+				return result;
+			}
+		}
+
+		public string LocalMachineRegistryRoot
+		{
+			get
+			{
+				string result = @"Software\" + (Environment.Is64BitOperatingSystem ? @"Wow6432Node\" : string.Empty) +
+					@"Microsoft\VisualStudio\" + this.InternalVersion;
+				return result;
+			}
+		}
+
+		public bool IsInstalled
+		{
+			get
+			{
+				bool result = File.Exists(this.DevEnvExeFullName);
+				return result;
+			}
+		}
+
+		public string DevEnvExeFullName
+		{
+			get
+			{
+				string result = null;
+				using (RegistryKey vsKey = Registry.LocalMachine.OpenSubKey(this.LocalMachineRegistryRoot))
+				{
+					if (vsKey != null)
+					{
+						string installDir = Convert.ToString(vsKey.GetValue("InstallDir"));
+						if (!string.IsNullOrEmpty(installDir))
+						{
+							result = Path.Combine(installDir, "DevEnv.exe");
+						}
+					}
+				}
+
+				return result;
+			}
+		}
+
+		#endregion
+	}
+
+	#endregion
+}

@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net47</TargetFramework>
+		<UseWindowsForms>true</UseWindowsForms>
+		<Description>SharpScript GUI</Description>
+		<ApplicationIcon>Images\App.ico</ApplicationIcon>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Content Include="Images\SharpScriptVB.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Images\App.ico" />
+	  <EmbeddedResource Include="Images\TrayIcon.ico" />
+	  <EmbeddedResource Include="Images\TrayIconVB.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\SharpScript.Common\SharpScript.Common.csproj" />
+	</ItemGroup>
+
+</Project>
