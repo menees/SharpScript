@@ -85,16 +85,14 @@ namespace SharpScript
 		{
 			try
 			{
-				// TODO: Make this open https://github.com/bmenees/SharpScript. [Bill, 4/4/2020]
-				string fileName = Path.ChangeExtension(Assembly.GetExecutingAssembly().Location, ".docx");
-				WindowsUtility.ShellExecute(null, fileName);
+				WindowsUtility.ShellExecute(null, "https://github.com/menees/SharpScript/");
 			}
+#pragma warning disable CC0004 // Catch block cannot be empty. Comment explains.
 			catch (InvalidOperationException)
 			{
+				// Thrown if the passed in file name is invalid.
 			}
-			catch (Win32Exception)
-			{
-			}
+#pragma warning restore CC0004 // Catch block cannot be empty
 		}
 
 		private static void About_Click(object sender, EventArgs e)

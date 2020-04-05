@@ -342,3 +342,6 @@ healthchecksdb
 
 # Local shortcuts for interactive testing
 Shortcuts/
+
+# Ignore any .exes that get orphaned in samples during testing/debugging
+samples/*.s??.exe

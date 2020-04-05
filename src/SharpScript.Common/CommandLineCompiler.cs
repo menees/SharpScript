@@ -128,6 +128,7 @@ namespace SharpScript
 				}
 				while (fetched > 0);
 			}
+#pragma warning disable CC0004 // Catch block cannot be empty. Comments explain catches.
 			catch (COMException ex) when (ex.HResult == REGDB_E_CLASSNOTREG)
 			{
 				// The SetupConfiguration API is not registered, so assume no instances are installed.
@@ -136,6 +137,7 @@ namespace SharpScript
 			{
 				// Heath Stewart (MSFT), the author of the SetupConfiguration API, says to treat any exception as "no instances installed."
 			}
+#pragma warning restore CC0004 // Catch block cannot be empty
 
 			return result;
 		}

@@ -1,0 +1,64 @@
+{
+	"profiles": {
+		"HelloRoslyn.scs": {
+			"commandName": "Project",
+			"commandLineArgs": "HelloRoslyn.scs",
+			"workingDirectory": "..\\..\\samples"
+		},
+		"HelloWorld.scs": {
+			"commandName": "Project",
+			"commandLineArgs": "HelloWorld.scs",
+			"workingDirectory": "..\\..\\samples"
+		},
+		"HelloWorld_Class.svb": {
+			"commandName": "Project",
+			"commandLineArgs": "HelloWorld_Class.svb",
+			"workingDirectory": "..\\..\\samples"
+		},
+		"HelloWorld_Module.svb": {
+			"commandName": "Project",
+			"commandLineArgs": "HelloWorld_Module.svb",
+			"workingDirectory": "..\\..\\samples"
+		},
+		"ShellSetup.scs": {
+			"commandName": "Project",
+			"commandLineArgs": "ShellSetup.scs",
+			"workingDirectory": "..\\..\\samples"
+		},
+		"TestCancel.scs": {
+			"commandName": "Project",
+			"commandLineArgs": "TestCancel.scs",
+			"workingDirectory": "..\\..\\samples"
+		},
+		"TestCSharp7Features.scs": {
+			"commandName": "Project",
+			"commandLineArgs": "TestCSharp7Features.scs",
+			"workingDirectory": "..\\..\\samples"
+		},
+		"TestException.scs": {
+			"commandName": "Project",
+			"commandLineArgs": "TestException.scs",
+			"workingDirectory": "..\\..\\samples"
+		},
+		"TestInputBox.scs": {
+			"commandName": "Project",
+			"commandLineArgs": "TestInputBox.scs",
+			"workingDirectory": "..\\..\\samples"
+		},
+		"TestMisc.scs": {
+			"commandName": "Project",
+			"commandLineArgs": "TestMisc.scs",
+			"workingDirectory": "..\\..\\samples"
+		},
+		"TestVB15Features.svb": {
+			"commandName": "Project",
+			"commandLineArgs": "TestVB15Features.svb",
+			"workingDirectory": "..\\..\\samples"
+		},
+		"UsingCOM.scs": {
+			"commandName": "Project",
+			"commandLineArgs": "UsingCOM.scs",
+			"workingDirectory": "..\\..\\samples"
+		}
+	}
+}

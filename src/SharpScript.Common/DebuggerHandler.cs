@@ -23,17 +23,14 @@ namespace SharpScript
 
 		#region Public Methods
 
-		[SuppressMessage(
-			"Microsoft.Performance",
-			"CA1822:MarkMembersAsStatic",
-			Justification = "This must be instance level to work correctly with MarshalByRefObject when marshaling across AppDomains.")]
+		// These methods must be instance-level to work correctly with MarshalByRefObject when marshaling across AppDomains.
+#pragma warning disable CA1822 // Use static method
+#pragma warning disable CC0091 // Use static method
 		public void Break() => Debugger.Break();
 
-		[SuppressMessage(
-			"Microsoft.Performance",
-			"CA1822:MarkMembersAsStatic",
-			Justification = "This must be instance level to work correctly with MarshalByRefObject when marshaling across AppDomains.")]
 		public bool Attach() => Debugger.Launch();
+#pragma warning restore CC0091 // Use static method
+#pragma warning restore CA1822 // Use static method
 
 		#endregion
 	}
