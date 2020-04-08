@@ -13,6 +13,7 @@ namespace SharpScript
 	using System.Text;
 	using System.Threading.Tasks;
 	using Menees.Shell;
+	using Menees.Windows;
 	using Microsoft.VisualStudio.Setup.Configuration;
 
 	#endregion
@@ -77,67 +78,19 @@ namespace SharpScript
 
 		#region Private Methods
 
-		[SuppressMessage(
-			"Microsoft.Design",
-			"CA1031:DoNotCatchGeneralExceptionTypes",
-			Justification = "Microsoft's COM API and samples say to catch all exceptions for the SetupConfiguration objects.")]
 		private static string FindRoslynPath()
 		{
-			string result = null;
-			Version resultVersion = null;
-
 			// We require the Roslyn compilers to be installed with MSBuild 15 (or later) using the "Build Tools for Visual Studio 2017" (or later).
 			// But multiple side-by-side editions can be installed, so there's no environment variable to find them.  We have to use a COM API.
-			// For more info see the comments in MegaBuild's VSVersionInfo.TryGetPathFromSetupConfiguration method.
-			const int REGDB_E_CLASSNOTREG = unchecked((int)0x80040154);
-			try
-			{
-				SetupConfiguration configuration = new SetupConfiguration();
-
-				IEnumSetupInstances instanceEnumerator = configuration.EnumAllInstances();
-				int fetched;
-				ISetupInstance[] instances = new ISetupInstance[1];
-				do
+			// For more info see the comments in VisualStudioUtility.ResolvePath.
+			string result = VisualStudioUtility.ResolvePath(
+				version =>
 				{
-					instanceEnumerator.Next(1, instances, out fetched);
-					if (fetched > 0)
-					{
-						ISetupInstance instance = instances[0];
-						if (instance != null
-							&& Version.TryParse(instance.GetInstallationVersion(), out Version version)
-							&& version.Major >= MinMajorVersion)
-						{
-							InstanceState state = ((ISetupInstance2)instance).GetState();
-							if (state == InstanceState.Complete)
-							{
-								string versionPath = version.Major == MinMajorVersion ? $"{MinMajorVersion}.0" : "Current";
-								string subPath = $@"MSBuild\{versionPath}\Bin\Roslyn";
-								string roslynPath = instance.ResolvePath(subPath);
-								if ((resultVersion == null || resultVersion < version) && Directory.Exists(roslynPath))
-								{
-									result = roslynPath;
-									resultVersion = version;
-
-									// Quit the inner 2-pass loop for MSBuild version matching,
-									// but keep doing the outer loop looking for a newer VS version.
-									break;
-								}
-							}
-						}
-					}
-				}
-				while (fetched > 0);
-			}
-#pragma warning disable CC0004 // Catch block cannot be empty. Comments explain catches.
-			catch (COMException ex) when (ex.HResult == REGDB_E_CLASSNOTREG)
-			{
-				// The SetupConfiguration API is not registered, so assume no instances are installed.
-			}
-			catch (Exception)
-			{
-				// Heath Stewart (MSFT), the author of the SetupConfiguration API, says to treat any exception as "no instances installed."
-			}
-#pragma warning restore CC0004 // Catch block cannot be empty
+					string versionPath = version.Major == MinMajorVersion ? $"{MinMajorVersion}.0" : "Current";
+					return $@"MSBuild\{versionPath}\Bin\Roslyn";
+				},
+				MinMajorVersion,
+				resolvedPathMustExist: true);
 
 			return result;
 		}
