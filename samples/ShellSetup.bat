@@ -1,9 +1,9 @@
 @echo off
 
 REM In the build environment the exe and script aren't in the same folder.
-if not exist SharpScript\bin\debug\SharpScript.exe goto production
-if not exist Scripts\ShellSetup.scs goto production
-start SharpScript\bin\debug\SharpScript.exe Scripts\ShellSetup.scs %1 %2 %3 %4 %5 %6 %7 %8 %9
+if not exist ..\src\SharpScript\bin\Debug\net47\SharpScript.exe goto production
+if not exist ..\samples\ShellSetup.scs goto production
+start ..\src\SharpScript\bin\Debug\net47\SharpScript.exe ..\samples\ShellSetup.scs %1 %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 :production

@@ -61,13 +61,23 @@ if ($publish)
 					# throws an exception if the .csproj uses <TargetFrameworks>. We have to override that and force a specific <TargetFramework> instead.
 					$targetFramework = GetXmlPropertyValue $profile 'TargetFramework'
 					msbuild $slnPath /t:Publish /p:PublishProfile=$profileName /p:TargetFramework=$targetFramework /v:$msBuildVerbosity /nologo /p:Configuration=$configuration
-
-					Remove-Item "$artifactsPath\$profileName\*.pdb"
-
-					Compress-Archive -Path "$artifactsPath\$profileName\*" -DestinationPath "$artifactsPath\$productName-Portable-$version-$profileName.zip"
-					$published = $true
 				}
 			}
+		}
+
+		foreach ($folderName in @(Get-ChildItem $artifactsPath -Directory))
+		{
+			$zipName = "$productName-Portable-$version-$folderName.zip"
+			Write-Host "Creating $zipName"
+
+			$subfolder = "$artifactsPath\$folderName"
+			Copy-Item "$repoPath\samples\ShellSetup.*" -Destination $subfolder -Exclude @('*.pdb', '*.exe')
+			Copy-Item "$repoPath\src\SharpScript\Images\SharpScriptVB.ico" -Destination $subfolder
+
+			Remove-Item "$artifactsPath\$folderName\*.pdb"
+
+			Compress-Archive -Path "$artifactsPath\$folderName\*" -DestinationPath "$artifactsPath\$zipName" -Update
+			$published = $true
 		}
 	}
 
