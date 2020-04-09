@@ -67,6 +67,7 @@ if ($publish)
 
 		foreach ($folderName in @(Get-ChildItem $artifactsPath -Directory))
 		{
+			$folderName = Split-Path $folderName -Leaf
 			$zipName = "$productName-Portable-$version-$folderName.zip"
 			Write-Host "Creating $zipName"
 
