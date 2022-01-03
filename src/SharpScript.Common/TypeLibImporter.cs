@@ -13,23 +13,19 @@ namespace SharpScript
 
 	#endregion
 
-	[SuppressMessage(
-		"Microsoft.Design",
-		"CA1060:MovePInvokesToNativeMethodsClass",
-		Justification = "This contains the only P/Invoke in the whole project, so it doesn't need a separate class.")]
 	internal sealed class TypeLibImporter : ITypeLibImporterNotifySink
 	{
 		#region Private Data Members
 
-		private readonly List<string> outputFiles = new List<string>();
+		private readonly List<string> outputFiles = new();
 		private readonly string tlbFullName;
-		private string namespaceName;
+		private string? namespaceName;
 
 		#endregion
 
 		#region Constructor
 
-		public TypeLibImporter(string tlbFullName, string namespaceName)
+		public TypeLibImporter(string tlbFullName, string? namespaceName)
 		{
 			// Do some initial setup.
 			this.tlbFullName = tlbFullName;
@@ -100,7 +96,7 @@ namespace SharpScript
 
 		#region Private Methods
 
-		private void SetNamespace(string namespaceName)
+		private void SetNamespace(string? namespaceName)
 		{
 			if (namespaceName == null)
 			{
@@ -138,7 +134,7 @@ namespace SharpScript
 			// ConvertTypeLibToAssembly method does.
 			string outputAsmFullName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, outputAssembly);
 
-			TypeLibConverter converter = new TypeLibConverter();
+			TypeLibConverter converter = new();
 			AssemblyBuilder ab = converter.ConvertTypeLibToAssembly(
 				typeLib,
 				outputAsmFullName,

@@ -15,8 +15,8 @@
 	{
 		#region Private Data Members
 
-		private List<string> references = new List<string>();
-		private List<string> outputFiles = new List<string>();
+		private readonly List<string> references = new();
+		private readonly List<string> outputFiles = new();
 
 		#endregion
 
@@ -24,7 +24,7 @@
 
 		public ScriptDirectives(ScriptTypeProvider stp, ScriptParameters scriptParams)
 		{
-			using (StreamReader reader = new StreamReader(scriptParams.FileName))
+			using (StreamReader reader = new(scriptParams.FileName))
 			{
 				int lineIndex = 0;
 				string line;
@@ -127,21 +127,19 @@
 
 		private static string GetReferenceName(string directiveValue, string errorMessageFormat, int line)
 		{
-			string referenceName = null;
+			string? referenceName = null;
 			directiveValue = directiveValue.Trim();
 			if (directiveValue.StartsWith("\"") && directiveValue.EndsWith("\""))
 			{
 				referenceName = directiveValue.Substring(1, directiveValue.Length - 2);
 			}
 
-			if (!string.IsNullOrEmpty(referenceName))
-			{
-				return referenceName;
-			}
-			else
+			if (referenceName.IsEmpty())
 			{
 				throw DirectiveException(errorMessageFormat, line);
 			}
+
+			return referenceName;
 		}
 
 		private static CompilerType GetCompilerType(string directiveValue, string errorMessageFormat, int line, bool caseSensitive)
@@ -167,7 +165,7 @@
 
 		private void AddComReference(string tlbName)
 		{
-			string namespaceName = null;
+			string? namespaceName = null;
 
 			// See if the reference contains a namespace.
 			string[] names = tlbName.Split(',', ';');
@@ -177,7 +175,7 @@
 				namespaceName = names[1].Trim();
 			}
 
-			TypeLibImporter importer = new TypeLibImporter(tlbName, namespaceName);
+			TypeLibImporter importer = new(tlbName, namespaceName);
 
 			// Add all of the interop assemblies as references.
 			string[] interopAssemblies = importer.GetInteropAssemblies();

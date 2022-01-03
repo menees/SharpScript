@@ -16,12 +16,12 @@ namespace SharpScript
 	{
 		#region Private Data Members
 
-		private readonly object monitor = new object();
-		private AppDomain executionDomain;
-		private ScriptParameters parameters;
-		private string[] outputFiles;
+		private readonly object monitor = new();
+		private AppDomain? executionDomain;
+		private ScriptParameters? parameters;
+		private string[]? outputFiles;
 		private ScriptType scriptType;
-		private DebuggerHandler debugger;
+		private DebuggerHandler? debugger;
 
 		#endregion
 
@@ -37,15 +37,15 @@ namespace SharpScript
 
 		protected static string SharpScriptDirectory => Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
-		protected string ScriptName => Path.GetFileName(this.parameters.FileName);
+		protected string ScriptName => Path.GetFileName(this.parameters?.FileName ?? string.Empty);
 
 		protected ScriptType ScriptType => this.scriptType;
 
-		protected bool Debug => this.parameters.Debug;
+		protected bool Debug => this.parameters?.Debug ?? false;
 
 		protected bool IsDebuggerAttached => this.CurrentDebugger?.IsAttached ?? false;
 
-		protected bool Quiet => this.parameters.Quiet;
+		protected bool Quiet => this.parameters?.Quiet ?? false;
 
 		#endregion
 
@@ -57,7 +57,7 @@ namespace SharpScript
 
 		#region Private Properties
 
-		private DebuggerHandler CurrentDebugger
+		private DebuggerHandler? CurrentDebugger
 		{
 			get
 			{
@@ -114,7 +114,7 @@ namespace SharpScript
 						this.scriptType = ScriptTypeProvider.GetProviderType(fileName).ScriptType;
 
 						// Execute the script asynchronously so we can cancel it if necessary.
-						ExecuteScriptHandler handler = new ExecuteScriptHandler(this.BackgroundExecuteScript);
+						ExecuteScriptHandler handler = new(this.BackgroundExecuteScript);
 						IAsyncResult result = handler.BeginInvoke(null, null);
 
 						// Let derived application types "wait" in an appropriate manner
@@ -139,7 +139,7 @@ namespace SharpScript
 
 		protected void CancelScriptExecution()
 		{
-			AppDomain executionDomain;
+			AppDomain? executionDomain;
 			lock (this.monitor)
 			{
 				executionDomain = this.executionDomain;
@@ -168,7 +168,7 @@ namespace SharpScript
 
 		protected void BreakInDebugger()
 		{
-			DebuggerHandler handler = this.CurrentDebugger;
+			DebuggerHandler? handler = this.CurrentDebugger;
 			if (handler != null)
 			{
 				handler.Break();
@@ -208,9 +208,9 @@ namespace SharpScript
 				// can also cancel the script by unloading the AppDomain.
 
 				// Set the base path to the directory the file is in.
-				AppDomainSetup setup = new AppDomainSetup
+				AppDomainSetup setup = new()
 				{
-					ApplicationBase = Path.GetDirectoryName(this.parameters.FileName),
+					ApplicationBase = Path.GetDirectoryName(this.parameters?.FileName ?? string.Empty),
 					ApplicationName = this.ScriptName,
 					ShadowCopyFiles = "false",
 				};
@@ -238,7 +238,8 @@ namespace SharpScript
 				// Make two calls here so we can get back the compiler's temporary
 				// file list first.  That way we can clean everything up later after
 				// we unload the AppDomain.
-				this.outputFiles = script.Compile(this.parameters, out string exceptionMessage);
+				string? exceptionMessage = null;
+				this.outputFiles = this.parameters != null ? script.Compile(this.parameters, out exceptionMessage) : null;
 				if (exceptionMessage != null && exceptionMessage.Length > 0)
 				{
 					throw Exceptions.Log(new ScriptException(exceptionMessage));

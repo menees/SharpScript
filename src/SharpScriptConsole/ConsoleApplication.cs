@@ -49,7 +49,7 @@ namespace SharpScript
 		private static int Main(string[] args)
 		{
 			ApplicationInfo.Initialize("SharpScriptConsole");
-			ConsoleApplication app = new ConsoleApplication();
+			ConsoleApplication app = new();
 			app.InstallCtrlHandler();
 			return app.Run(args);
 		}

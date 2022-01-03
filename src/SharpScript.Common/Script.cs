@@ -18,9 +18,9 @@ namespace SharpScript
 		#region Private Data Members
 
 		private static bool initialized;
-		private static ScriptParameters scriptParameters;
+		private static ScriptParameters? scriptParameters;
 		private static DateTime startTime;
-		private static System.Threading.Timer timeoutTimer;
+		private static System.Threading.Timer? timeoutTimer;
 
 		#endregion
 
@@ -33,7 +33,7 @@ namespace SharpScript
 			get
 			{
 				RequireInitialized();
-				return scriptParameters.FileName;
+				return scriptParameters!.FileName;
 			}
 		}
 
@@ -42,7 +42,7 @@ namespace SharpScript
 			get
 			{
 				RequireInitialized();
-				return scriptParameters.Debug;
+				return scriptParameters!.Debug;
 			}
 		}
 
@@ -51,7 +51,7 @@ namespace SharpScript
 			get
 			{
 				RequireInitialized();
-				return scriptParameters.ScriptName;
+				return scriptParameters!.ScriptName;
 			}
 		}
 
@@ -60,7 +60,7 @@ namespace SharpScript
 			get
 			{
 				RequireInitialized();
-				return scriptParameters.InConsole;
+				return scriptParameters!.InConsole;
 			}
 		}
 
@@ -78,7 +78,7 @@ namespace SharpScript
 			get
 			{
 				RequireInitialized();
-				return scriptParameters.Timeout;
+				return scriptParameters!.Timeout;
 			}
 		}
 
@@ -87,7 +87,7 @@ namespace SharpScript
 			get
 			{
 				RequireInitialized();
-				return scriptParameters.Quiet;
+				return scriptParameters!.Quiet;
 			}
 		}
 
@@ -96,7 +96,7 @@ namespace SharpScript
 			get
 			{
 				RequireInitialized();
-				return scriptParameters.SharpScriptDirectory;
+				return scriptParameters!.SharpScriptDirectory;
 			}
 		}
 
@@ -107,7 +107,7 @@ namespace SharpScript
 		public static string[] GetArguments()
 		{
 			RequireInitialized();
-			return (string[])scriptParameters.Arguments.Clone();
+			return (string[]?)scriptParameters?.Arguments.Clone() ?? Array.Empty<string>();
 		}
 
 		public static void Echo(params object[] values)
@@ -123,7 +123,7 @@ namespace SharpScript
 			}
 			else
 			{
-				StringBuilder sb = new StringBuilder();
+				StringBuilder sb = new();
 
 				foreach (object value in values)
 				{
@@ -163,43 +163,23 @@ namespace SharpScript
 			Thread.Sleep(milliseconds);
 		}
 
-		[SuppressMessage(
-			"Microsoft.Naming",
-			"CA1704:IdentifiersShouldBeSpelledCorrectly",
-			MessageId = "Msg",
-			Justification = "Required spelling for backward compatibility.")]
 		public static DialogResult MsgBox(string prompt) => MsgBox(prompt, MessageBoxButtons.OK);
 
-		[SuppressMessage(
-			"Microsoft.Naming",
-			"CA1704:IdentifiersShouldBeSpelledCorrectly",
-			MessageId = "Msg",
-			Justification = "Required spelling for backward compatibility.")]
 		public static DialogResult MsgBox(string prompt, MessageBoxButtons buttons) => MsgBox(prompt, buttons, Name);
 
-		[SuppressMessage(
-			"Microsoft.Naming",
-			"CA1704:IdentifiersShouldBeSpelledCorrectly",
-			MessageId = "Msg",
-			Justification = "Required spelling for backward compatibility.")]
 		public static DialogResult MsgBox(string prompt, MessageBoxButtons buttons, string caption) => MsgBox(prompt, buttons, MessageBoxIcon.None, caption);
 
-		[SuppressMessage(
-			"Microsoft.Naming",
-			"CA1704:IdentifiersShouldBeSpelledCorrectly",
-			MessageId = "Msg",
-			Justification = "Required spelling for backward compatibility.")]
 		public static DialogResult MsgBox(string prompt, MessageBoxButtons buttons, MessageBoxIcon icon, string caption)
 		{
 			RequireInitialized();
 			return MessageBox.Show(prompt, caption, buttons, icon);
 		}
 
-		public static string InputBox(string prompt) => InputBox(prompt, Name, string.Empty);
+		public static string? InputBox(string prompt) => InputBox(prompt, Name, string.Empty);
 
-		public static string InputBox(string prompt, string caption) => InputBox(prompt, caption, string.Empty);
+		public static string? InputBox(string prompt, string caption) => InputBox(prompt, caption, string.Empty);
 
-		public static string InputBox(string prompt, string caption, string defaultValue)
+		public static string? InputBox(string prompt, string caption, string defaultValue)
 			=> WindowsUtility.ShowInputBox(null, prompt, caption, defaultValue, null, null);
 
 		#endregion
@@ -240,7 +220,7 @@ namespace SharpScript
 		private static void TimeoutTimer_Callback(object value)
 		{
 			// We don't need to get any more notifications after this one.
-			timeoutTimer.Dispose();
+			timeoutTimer?.Dispose();
 
 			// If we get here, then the script timed out, so Cancel it.
 			// It would be nice to return a special exit code for timeout,

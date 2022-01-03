@@ -23,8 +23,8 @@ namespace SharpScript
 	{
 		#region Private Data Members
 
-		private ScriptParameters scriptParameters;
-		private Assembly emittedAssembly;
+		private ScriptParameters? scriptParameters;
+		private Assembly? emittedAssembly;
 
 		#endregion
 
@@ -51,9 +51,9 @@ namespace SharpScript
 			"Microsoft.Design",
 			"CA1031:DoNotCatchGeneralExceptionTypes",
 			Justification = "We don't want an exception to escape the Compile step because it might not cross the AppDomain boundary.")]
-		public string[] Compile(ScriptParameters parameters, out string exceptionMessage)
+		public string[]? Compile(ScriptParameters parameters, out string exceptionMessage)
 		{
-			string[] result = null;
+			string[]? result = null;
 
 			exceptionMessage = string.Empty;
 			try
@@ -67,7 +67,7 @@ namespace SharpScript
 				ScriptTypeProvider stp = ScriptTypeProvider.GetProviderType(this.scriptParameters.FileName);
 
 				// Read all the script directives like #reference, #option, etc.
-				ScriptDirectives directives = new ScriptDirectives(stp, this.scriptParameters);
+				ScriptDirectives directives = new(stp, this.scriptParameters);
 
 				ScriptCompiler compiler;
 				switch (directives.Compiler)
@@ -114,7 +114,10 @@ namespace SharpScript
 				}
 
 				// Initialize the static "Script" class since we're about to execute.
-				Script.Initialize(this.scriptParameters);
+				if (this.scriptParameters != null)
+				{
+					Script.Initialize(this.scriptParameters);
+				}
 
 				// Run the script.
 				result = this.ExecuteAssembly();
@@ -140,7 +143,7 @@ namespace SharpScript
 
 		private static IEnumerable<string> CacheAssemblyFolders()
 		{
-			List<string> result = new List<string>();
+			List<string> result = new();
 
 			// The main .NET reference assemblies are always in the 32-bit Program Files directory.
 			// (e.g., %ProgramFiles%\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0).
@@ -279,26 +282,26 @@ namespace SharpScript
 		private int ExecuteAssembly()
 		{
 			// Get the main entry point to the new assembly.
-			MethodInfo main = this.emittedAssembly.EntryPoint;
+			MethodInfo? main = this.emittedAssembly?.EntryPoint;
 			if (main == null)
 			{
 				throw new InvalidProgramException("The script's entry point (e.g., a Main method) could not be found.");
 			}
 
 			// Main's parameter can be void or string[].  We need to handle both cases.
-			object[] mainArgs = null;
-			if (main.GetParameters().Length == 1)
+			object[]? mainArgs = null;
+			if (main.GetParameters().Length == 1 && this.scriptParameters != null)
 			{
 				mainArgs = new object[] { this.scriptParameters.Arguments };
 			}
 
 			// These will be set the by the thread's anonymous delegate.
-			Exception exception = null;
+			Exception? exception = null;
 			int result = 0;
 
 			// Always execute in a new worker thread so we can control its apartment model.
 			// Remember: This code won't execute until Thread.Start is called!
-			Thread thread = new Thread(() =>
+			Thread thread = new(() =>
 				{
 					// Run the Main method.
 					try
@@ -346,7 +349,7 @@ namespace SharpScript
 			thread.Join();
 
 			// Check if we need to rethrow an exception from the thread function.
-			if (exception != null)
+			if (exception != null && this.scriptParameters != null)
 			{
 				// In debug runs, we'll rethrow a message containing all the exception detail
 				// such as type, stack trace, message, etc.  Release runs just get the message.
@@ -357,9 +360,9 @@ namespace SharpScript
 			return result;
 		}
 
-		private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+		private Assembly? CurrentDomain_AssemblyResolve(object? sender, ResolveEventArgs args)
 		{
-			Assembly result = null;
+			Assembly? result = null;
 
 			// If we couldn't find the assembly in the "Load" context, look through
 			// all assemblies in the current AppDomain because the assembly may
@@ -377,7 +380,7 @@ namespace SharpScript
 			// If we still can't find the assembly, see if it exists in the base SharpScript folder.
 			// This allows scripts to use the Menees.* assemblies as well as any other shared
 			// assemblies a user wants to deploy into the base SharpScript folder.
-			if (result == null)
+			if (result == null && this.scriptParameters != null)
 			{
 				string sharpScriptFolder = this.scriptParameters.SharpScriptDirectory;
 				int commaIndex = args.Name.IndexOf(',');

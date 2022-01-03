@@ -12,6 +12,7 @@ namespace SharpScript
 	using System.Reflection;
 	using System.Text;
 	using System.Threading.Tasks;
+	using Menees;
 
 	#endregion
 
@@ -19,7 +20,7 @@ namespace SharpScript
 	{
 		#region Private Data Members
 
-		private CompilerResults results;
+		private CompilerResults? results;
 
 		#endregion
 
@@ -46,7 +47,7 @@ namespace SharpScript
 
 		#region Public Methods
 
-		public override Assembly Compile(bool throwOnError)
+		public override Assembly? Compile(bool throwOnError)
 		{
 			// Create the correct compiler in parallel while we read the script.
 			Task<CodeDomProvider> compilerTask = Task.Run(() => CreateCompiler(this.TypeProvider.ScriptType));
@@ -64,7 +65,7 @@ namespace SharpScript
 			this.results = compiler.CompileAssemblyFromFile(compileParams, this.Parameters.FileName);
 			this.AddCompilerOutputFiles();
 
-			Assembly result = null;
+			Assembly? result = null;
 			if (this.VerifyCompile(throwOnError))
 			{
 				result = this.results.CompiledAssembly;
@@ -89,7 +90,7 @@ namespace SharpScript
 			// way to force them to use specific version language features.  So I'm hardcoding
 			// these constructor calls rather than adding even more configurable options for
 			// special constructor invocation.
-			Dictionary<string, string> providerOptions = new Dictionary<string, string>();
+			Dictionary<string, string> providerOptions = new();
 			providerOptions.Add("CompilerVersion", string.Format("v{0}.{1}", dotNetVersion.Major, dotNetVersion.Minor));
 
 			CodeDomProvider result;
@@ -107,7 +108,7 @@ namespace SharpScript
 
 		private CompilerParameters SetupCompilerOptions()
 		{
-			CompilerParameters compileParams = new CompilerParameters
+			CompilerParameters compileParams = new()
 			{
 				// We have to do this so we'll have an EntryPoint.
 				GenerateExecutable = true,
@@ -134,7 +135,7 @@ namespace SharpScript
 			compileParams.WarningLevel = V;
 
 			// Set the custom compile options for the current build mode.
-			StringBuilder options = new StringBuilder(compileParams.CompilerOptions);
+			StringBuilder options = new(compileParams.CompilerOptions);
 
 			// Set the executable to the correct target type.
 			// This isn't strictly necessary, but if the temporary
@@ -167,13 +168,15 @@ namespace SharpScript
 
 		private bool VerifyCompile(bool throwOnError)
 		{
+			Conditions.RequireReference(this.results, nameof(this.results));
+
 			int numErrors = this.results.Errors.Count;
 			if (numErrors > 0)
 			{
 				string[] scriptLines = File.ReadAllLines(this.Parameters.FileName);
 
 				const int BufferSize = 1024;
-				StringBuilder sb = new StringBuilder(BufferSize);
+				StringBuilder sb = new(BufferSize);
 				sb.Append(Properties.Resources.CompileErrors);
 				sb.Append(":\r\n");
 
@@ -214,8 +217,10 @@ namespace SharpScript
 
 		private void AddCompilerOutputFiles()
 		{
+			Conditions.RequireReference(this.results, nameof(this.results));
+
 			// Add the assembly.
-			string asmPath = this.results.PathToAssembly;
+			string? asmPath = this.results.PathToAssembly;
 			if (asmPath != null && asmPath.Length > 0)
 			{
 				this.AddOutputFile(asmPath);

@@ -23,8 +23,8 @@ namespace SharpScript
 	{
 		#region Private Data Members
 
-		private NotifyIcon trayIcon;
-		private MenuItem attachMenu;
+		private NotifyIcon? trayIcon;
+		private MenuItem? attachMenu;
 
 		#endregion
 
@@ -67,7 +67,7 @@ namespace SharpScript
 		private static int Main(string[] args)
 		{
 			WindowsUtility.InitializeApplication(nameof(SharpScript), null);
-			WindowsApplication app = new WindowsApplication();
+			WindowsApplication app = new();
 			return app.Run(args);
 		}
 
@@ -150,8 +150,8 @@ namespace SharpScript
 			}
 
 			using (this.trayIcon = new NotifyIcon())
-			using (Icon icon = new Icon(typeof(WindowsApplication), iconResourceName))
-			using (ContextMenu mnuContext = new ContextMenu())
+			using (Icon icon = new(typeof(WindowsApplication), iconResourceName))
+			using (ContextMenu mnuContext = new())
 			{
 				// Setup the context menu.
 				mnuContext.MenuItems.Add(GetResourceText("CancelExecutionMenuItem"), this.CancelExecution_Click);

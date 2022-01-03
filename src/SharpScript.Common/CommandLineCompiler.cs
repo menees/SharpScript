@@ -26,7 +26,7 @@ namespace SharpScript
 		private const int MinMajorVersion = 15;
 		private const int VsVersion = 2017;
 
-		private readonly string roslynPath;
+		private readonly string? roslynPath;
 
 		#endregion
 
@@ -51,15 +51,15 @@ namespace SharpScript
 
 		#region Public Methods
 
-		public override Assembly Compile(bool throwOnError)
+		public override Assembly? Compile(bool throwOnError)
 		{
-			StringBuilder args = new StringBuilder();
+			StringBuilder args = new();
 			string outputExeName = this.AppendArgs(args);
 
 			string compilerExeName = this.TypeProvider.ScriptType == ScriptType.VB ? this.AppendVBArgs(args) : this.AppendCSharpArgs(args);
-			Assembly result = null;
-			ProcessStartInfo startInfo = new ProcessStartInfo(Path.Combine(this.roslynPath, compilerExeName), args.ToString());
-			ConsoleOutputBuffer buffer = new ConsoleOutputBuffer(startInfo, true);
+			Assembly? result = null;
+			ProcessStartInfo startInfo = new(Path.Combine(this.roslynPath, compilerExeName), args.ToString());
+			ConsoleOutputBuffer buffer = new(startInfo, true);
 			if (buffer.HasProcessExited && buffer.ProcessExitCode == 0)
 			{
 				AssemblyName assemblyName = AssemblyName.GetAssemblyName(outputExeName);
@@ -78,12 +78,12 @@ namespace SharpScript
 
 		#region Private Methods
 
-		private static string FindRoslynPath()
+		private static string? FindRoslynPath()
 		{
 			// We require the Roslyn compilers to be installed with MSBuild 15 (or later) using the "Build Tools for Visual Studio 2017" (or later).
 			// But multiple side-by-side editions can be installed, so there's no environment variable to find them.  We have to use a COM API.
 			// For more info see the comments in VisualStudioUtility.ResolvePath.
-			string result = VisualStudioUtility.ResolvePath(
+			string? result = VisualStudioUtility.ResolvePath(
 				version =>
 				{
 					string versionPath = version.Major == MinMajorVersion ? $"{MinMajorVersion}.0" : "Current";
@@ -95,7 +95,7 @@ namespace SharpScript
 			return result;
 		}
 
-		private static void AppendQuotedFileName(StringBuilder args, string prefix, string fileName)
+		private static void AppendQuotedFileName(StringBuilder args, string? prefix, string fileName)
 			=> args.Append(prefix).Append('"').Append(fileName).Append("\" ");
 
 		private string AppendArgs(StringBuilder args)

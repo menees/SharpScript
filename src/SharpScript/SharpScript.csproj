@@ -2,7 +2,6 @@
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net47</TargetFramework>
 		<UseWindowsForms>true</UseWindowsForms>
 		<Description>SharpScript GUI</Description>
 		<ApplicationIcon>Images\App.ico</ApplicationIcon>

@@ -23,7 +23,7 @@ namespace SharpScript
 				new ScriptVbProvider(),
 			};
 
-		private string[] extensions;
+		private readonly string[] extensions;
 
 		#endregion
 

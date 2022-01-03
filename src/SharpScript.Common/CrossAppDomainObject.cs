@@ -14,7 +14,7 @@ namespace SharpScript
 	{
 		#region Public Methods
 
-		public override object InitializeLifetimeService() => null;
+		public override object? InitializeLifetimeService() => null;
 
 		#endregion
 	}

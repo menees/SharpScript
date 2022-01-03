@@ -13,20 +13,20 @@ namespace SharpScript
 	{
 		#region Private Data Members
 
-		private string[] arguments;
-		private string fileName;
+		private string[]? arguments;
+		private string? fileName;
 		private bool inConsole;
 		private bool quiet;
 		private TimeSpan timeout;
-		private string sharpScriptDirectory;
+		private string? sharpScriptDirectory;
 
 		#endregion
 
 		#region Public Properties
 
-		public string[] Arguments => this.arguments;
+		public string[] Arguments => this.arguments ?? Array.Empty<string>();
 
-		public string FileName => this.fileName;
+		public string FileName => this.fileName ?? string.Empty;
 
 		// This is internally settable because it can be read from the
 		// command line or from a #debug directive in the script.
@@ -38,7 +38,7 @@ namespace SharpScript
 
 		public TimeSpan Timeout => this.timeout;
 
-		public string SharpScriptDirectory => this.sharpScriptDirectory;
+		public string SharpScriptDirectory => this.sharpScriptDirectory ?? string.Empty;
 
 		public string ScriptName => Path.GetFileNameWithoutExtension(this.FileName);
 
@@ -63,7 +63,7 @@ namespace SharpScript
 					// one of our arguments.  The first argument that doesn't begin
 					// with "//" or "/" will be considered the script file name.
 					bool validArgs = true;
-					List<string> lstArgs = new List<string>();
+					List<string> lstArgs = new();
 					for (int i = 0; i < numAppArgs; i++)
 					{
 						string arg = appArgs[i];
@@ -127,9 +127,7 @@ namespace SharpScript
 
 		private static int GetInt(string value)
 		{
-			int result;
-
-			if (!int.TryParse(value, out result))
+			if (!int.TryParse(value, out int result))
 			{
 				result = 0;
 			}

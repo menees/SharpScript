@@ -40,8 +40,8 @@ namespace SharpScript
 				"System.Xaml.dll",
 			};
 
-		private List<string> outputFiles = new List<string>();
-		private Task<IEnumerable<string>> assemblyFoldersTask;
+		private readonly List<string> outputFiles = new();
+		private readonly Task<IEnumerable<string>> assemblyFoldersTask;
 
 		#endregion
 
@@ -64,7 +64,7 @@ namespace SharpScript
 
 		#region Public Properties
 
-		public ScriptException CompileError { get; private set; }
+		public ScriptException? CompileError { get; private set; }
 
 		#endregion
 
@@ -86,7 +86,7 @@ namespace SharpScript
 
 		#region Public Methods
 
-		public static void CleanUpOutputFiles(IEnumerable<string> outputFiles)
+		public static void CleanUpOutputFiles(IEnumerable<string>? outputFiles)
 		{
 			if (outputFiles != null)
 			{
@@ -110,7 +110,7 @@ namespace SharpScript
 			}
 		}
 
-		public abstract Assembly Compile(bool throwOnError);
+		public abstract Assembly? Compile(bool throwOnError);
 
 		public string[] GetOutputFiles() => this.outputFiles.ToArray();
 
@@ -121,7 +121,7 @@ namespace SharpScript
 		protected IEnumerable<T> CreateReferences<T>(Func<string, T> convertQualifiedName)
 		{
 			// Add the same default assembly references that VS uses for new projects (plus C#/VB and SharpScript refs).
-			List<string> referenceNames = new List<string>(DefaultStandardReferences.Length + DefaultGuiReferences.Length + 2);
+			List<string> referenceNames = new(DefaultStandardReferences.Length + DefaultGuiReferences.Length + 2);
 			referenceNames.AddRange(this.StandardReferences);
 			referenceNames.AddRange(this.TypeProvider.SpecialReferences);
 
@@ -131,7 +131,7 @@ namespace SharpScript
 				referenceNames.AddRange(this.GuiReferences);
 			}
 
-			List<T> references = new List<T>();
+			List<T> references = new();
 			this.AddAssemblyReferences(references, referenceNames, convertQualifiedName);
 
 			// Add the SharpScript.Common assembly.
