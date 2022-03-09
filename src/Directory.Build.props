@@ -13,7 +13,14 @@
 		<Copyright>Copyright © 2004-$([System.DateTime]::UtcNow.ToString(`yyyy`)) Bill Menees</Copyright>
 		<RootNamespace>SharpScript</RootNamespace>
 
-		<!-- When TargetFrameworks changes, also update the app's Properties\PublishProfiles\*.pubxml files. -->
+		<!--
+			If the version of .NET changes, then:
+			- Add new version in ScriptHandler.CacheAssemblyFolders.
+			- Update all NuGet packages.
+			- Update constants in CommandLineCompiler
+			- Update the app's Properties\PublishProfiles\*.pubxml files.
+			- References to .NET, MSBuild, and compiler versions in README.md.
+		-->
 		<TargetFrameworks>net48</TargetFrameworks>
 
 		<RepoSrcFolder>$(MSBuildThisFileDirectory)</RepoSrcFolder>
@@ -24,15 +31,8 @@
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 
-		<!--
-			If the version of .NET changes, then:
-			- Add new version in ScriptHandler.CacheAssemblyFolders.
-			- Update all NuGet packages.
-			- Update constants in CommandLineCompiler
-			- References to .NET, MSBuild, and compiler versions in README.md.
-		-->
 		<!-- Make the assembly, file, and NuGet package versions the same. -->
-		<Version>5.1.4</Version>
+		<Version>5.1.5</Version>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">

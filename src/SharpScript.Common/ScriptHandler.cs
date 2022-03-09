@@ -160,7 +160,7 @@ namespace SharpScript
 			if (dotNetVersion.Major == DotNetVersion4 && dotNetVersion.Minor == 0)
 			{
 				// Look through the v4.x.y versions in order from newest to oldest.
-				foreach (string version in new[] { "V4.7", "v4.6.2", "v4.6.1", "v4.6", "v4.5.2", "v4.5.1", "v4.5" })
+				foreach (string version in new[] { "v4.8", "v4.7.2", "V4.7", "v4.6.2", "v4.6.1", "v4.6", "v4.5.2", "v4.5.1", "v4.5" })
 				{
 					string referencePath = baseReferencePath + version;
 					if (Directory.Exists(referencePath))

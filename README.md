@@ -5,7 +5,7 @@ SharpScript provides .NET scripting using C# and VB.NET, and it's been around si
 
 SharpScript includes a GUI version (SharpScript.exe) and a console version (SharpScriptConsole.exe).  The GUI version provides a tray icon that allows you to monitor or cancel a script’s execution.  Both versions allow you to run debug versions of your scripts so you can attach to them with a debugger if necessary.  The GUI version even provides menu items on the tray icon to make it easy to attach a debugger or break in the debugger.
 
-SharpScript is written in C# and requires at least the .NET 4.7 Framework.  To use the latest C# or VB language features, you also need to install the latest [Build Tools For Visual Studio](https://visualstudio.microsoft.com/downloads/) (e.g., [2019](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16)) from Microsoft, which includes [MSBuild](https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild) and the Roslyn compilers.
+SharpScript is written in C# and requires .NET Framework 4.8.  To use the latest C# or VB language features, you also need to install the latest [Build Tools For Visual Studio](https://visualstudio.microsoft.com/downloads/) (e.g., [2022](https://aka.ms/vs/17/release/vs_BuildTools.exe)) from Microsoft, which includes [MSBuild](https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild) and the Roslyn compilers.
 
 This software is CharityWare.  If you like it and use it, I ask that you donate something to the charity of your choice.  I'll never know if you follow this policy, but the good karma from following it will be well worth your investment.
 
