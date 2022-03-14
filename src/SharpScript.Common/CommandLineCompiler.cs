@@ -130,6 +130,9 @@ namespace SharpScript
 				AppendQuotedFileName(args, "/r:", reference);
 			}
 
+			// These two old warnings should be ignored by default now. https://github.com/dotnet/roslyn/issues/19640
+			args.Append("/nowarn:1701,1702 ");
+
 			return exeName;
 		}
 

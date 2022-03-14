@@ -1,4 +1,5 @@
-// #debug 
+// #compiler Roslyn
+// #debug
 // #reference "System.Windows.Forms.dll"
 // #reference "System.IO.Compression.dll"
 // #reference "System.IO.Compression.FileSystem.dll"
@@ -18,7 +19,7 @@ class Test
 		var x = "This is a test.";
 		var y = 123;
 		x += Convert.ToString(y);
-		
+
 		using (OpenFileDialog open = new OpenFileDialog())
 		{
 			open.Title = "Select a Zip file";

@@ -137,6 +137,9 @@ namespace SharpScript
 			// Set the custom compile options for the current build mode.
 			StringBuilder options = new(compileParams.CompilerOptions);
 
+			// These two old warnings should be ignored by default now. https://github.com/dotnet/roslyn/issues/19640
+			options.Append(" /nowarn:1701,1702");
+
 			// Set the executable to the correct target type.
 			// This isn't strictly necessary, but if the temporary
 			// exe gets left out there and a user tries to run it,
