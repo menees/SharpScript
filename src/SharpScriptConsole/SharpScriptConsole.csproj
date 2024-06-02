@@ -4,6 +4,7 @@
 		<OutputType>Exe</OutputType>
 		<Description>SharpScript Console Host</Description>
 		<ApplicationIcon>App.ico</ApplicationIcon>
+		<IsPublishable Condition="$(PublishProfile) == '$(MSBuildProjectName) Framework'">true</IsPublishable>
 	</PropertyGroup>
 
 	<ItemGroup>

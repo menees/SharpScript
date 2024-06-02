@@ -5,6 +5,7 @@
 		<UseWindowsForms>true</UseWindowsForms>
 		<Description>SharpScript GUI</Description>
 		<ApplicationIcon>Images\App.ico</ApplicationIcon>
+		<IsPublishable Condition="$(PublishProfile) == '$(MSBuildProjectName) Framework'">true</IsPublishable>
 	</PropertyGroup>
 
 	<ItemGroup>
